@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:test1/src/screens/auth_page/login_page.dart';
+import 'package:test1/src/screens/auth_page/register_page.dart';
 import 'package:test1/src/screens/home_page/home_page.dart';
-import 'package:test1/src/screens/login_page/login_page.dart';
-import 'package:test1/src/screens/register_page/register_page.dart';
-import 'package:test1/src/screens/smart_station_page/smart_station_page.dart';
+import 'package:test1/src/screens/home_page/smart_station_page.dart';
 
 void main() => runApp(const MyApp());
 
