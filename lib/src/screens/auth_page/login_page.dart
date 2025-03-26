@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test1/src/business/use_caces/login_user_use_case.dart';
-import 'package:test1/src/data/local/user_repository_impl.dart';
 import 'package:test1/src/widgets/reusable/reusable_text.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,14 +19,9 @@ class _LoginPageState extends State<LoginPage> {
   // Повідомлення про помилку (якщо логін неуспішний)
   String? _errorMessage;
 
-  // Репозиторій та use case
-  final _userRepository = UserRepositoryImpl();
-  late final LoginUserUseCase _loginUseCase;
-
   @override
   void initState() {
     super.initState();
-    _loginUseCase = LoginUserUseCase(_userRepository);
     _checkAutoLogin();
   }
 
@@ -39,13 +34,16 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Спроба логіну через use case
+  // Спроба логіну через use case (взятий із Provider)
   Future<void> _onLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
+    // Отримуємо use case логіну через Provider
+    final loginUseCase = context.read<LoginUserUseCase>();
+
     // Викликаємо use case
-    final error = await _loginUseCase.execute(email, password);
+    final error = await loginUseCase.execute(email, password);
 
     if (error != null) {
       // Логін неуспішний: виводимо помилку

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:test1/src/business/use_caces/register_user_use_case.dart';
-import 'package:test1/src/data/local/user_repository_impl.dart';
 import 'package:test1/src/domain/models/user.dart';
-import 'package:test1/src/screens/auth_page/login_page.dart';
 import 'package:test1/src/widgets/reusable/reusable_text.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -15,26 +14,16 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   // Контролери для полів вводу
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _nameController  = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController
-  _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   // Повідомлення про помилку
   String? _errorMessage;
 
-  final _userRepository = UserRepositoryImpl();
-  late final RegisterUserUseCase _registerUseCase;
-
-  @override
-  void initState() {
-    super.initState();
-    _registerUseCase = RegisterUserUseCase(_userRepository);
-  }
-
   Future<void> _onRegister() async {
     final email = _emailController.text.trim();
-    final name  = _nameController.text.trim();
+    final name = _nameController.text.trim();
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
@@ -44,23 +33,22 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    // Отримуємо use case реєстрації через Provider
+    final registerUseCase = context.read<RegisterUserUseCase>();
+
     final user = User(
       email: email,
       name: name,
       password: password,
     );
 
-    final error = await _registerUseCase.execute(user);
+    final error = await registerUseCase.execute(user);
     if (error != null) {
       setState(() => _errorMessage = error);
     } else {
       // Якщо реєстрація успішна, переходимо на екран логіну
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute<void>(builder: (_) => const LoginPage()),
-        );
-
+        Navigator.pushReplacementNamed(context, '/');
       }
     }
   }
@@ -118,8 +106,7 @@ class _RegisterPageState extends State<RegisterPage> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric
-                  (horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
