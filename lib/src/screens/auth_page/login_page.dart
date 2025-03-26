@@ -186,13 +186,21 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 16),
 
                       // Виведення помилки (якщо є)
-                      if (_errorMessage != null) ...[
-                        Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
+                      Column(
+                        children: [
+                          if (_errorMessage != null) ...[
+                            Text(
+                              _errorMessage ?? '',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // решта вмісту
+                          const Text('Основний контент'),
+                        ],
+                      ),
+
 
                       // Посилання "Забули пароль?"
                       TextButton(

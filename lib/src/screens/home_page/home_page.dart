@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:test1/src/widgets/chipi_dizel_connector/chipi_dizel_connector.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool _isConnected = ChipiDizelConnectorState.connected;
+
+  void _handleConnectionChanged(bool connected) {
+    setState(() {
+      _isConnected = connected;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Основні кольори для темного дизайну
     const Color darkBackground = Color(0xFF1A1B2D);
     const Color accentPurple = Color(0xFF8A2BE2);
     const Color lightPurple = Color(0xFFB19CD9);
@@ -28,7 +40,7 @@ class HomePage extends StatelessWidget {
               ),
             ),
           ),
-          // Декоративні напівпрозорі кола
+          // Декоративні кола
           Positioned(
             top: -80,
             left: -50,
@@ -58,15 +70,12 @@ class HomePage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Верхній заголовок
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 30, horizontal: 16),
                   child: Row(
                     children: [
                       Icon(
-                        Icons.power_settings_new,
-                        size: 40,
-                        color: Colors.white,
+                        Icons.power_settings_new, size: 40, color: Colors.white,
                       ),
                       SizedBox(width: 12),
                       Expanded(
@@ -82,7 +91,6 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Основний контент: круг, у якому розміщено ChipiDizelConnector
                 Expanded(
                   child: SingleChildScrollView(
                     child: Center(
@@ -102,23 +110,30 @@ class HomePage extends StatelessWidget {
                               end: Alignment.bottomRight,
                             ),
                           ),
-                          child: const Center(
-                            child: ChipiDizelConnector(),
+                          child: Center(
+                            child: ChipiDizelConnector(
+                              onConnectionChanged: _handleConnectionChanged,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-                // Кнопка переходу до станції
                 Container(
-                  margin: const EdgeInsets.symmetric
-                    (horizontal: 24, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 8,
+                  ),
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/station'),
+                    onPressed: () {
+                      if (_isConnected) {
+                        Navigator.pushNamed(context, '/station');
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: accentPurple,
+                      backgroundColor:
+                      _isConnected ? accentPurple : Colors.white10,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -127,14 +142,13 @@ class HomePage extends StatelessWidget {
                     child: const Text(
                       'Перейти до станції',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-                // Нижній напис
                 const Padding(
                   padding: EdgeInsets.only(bottom: 16),
                   child: Text(

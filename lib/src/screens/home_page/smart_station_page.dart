@@ -1,9 +1,46 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:test1/src/widgets/reusable/reusable_button.dart';
 
-class SmartStationPage extends StatelessWidget {
+class SmartStationPage extends StatefulWidget {
   const SmartStationPage({super.key});
+
+  @override
+  State<SmartStationPage> createState() => _SmartStationPageState();
+}
+
+class _SmartStationPageState extends State<SmartStationPage> {
+  late Timer _timer;
+  final Random _random = Random();
+
+  int temperature = 0;
+  int humidity = 0;
+  int pressure = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateSensorData();
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _updateSensorData();
+    });
+  }
+
+  void _updateSensorData() {
+    setState(() {
+      temperature = 15 + _random.nextInt(16);
+      humidity = 40 + _random.nextInt(37);
+      pressure = 961 + _random.nextInt(100);
+    });
+  }
+// КРИВО НО ОБНОВЛЯЄ, ВКАЗАНО 10 СЕКУНД ОБНОВЛЯЄ ЯКОСЬ ТО ШВИДШЕ ТО ПІЗНІШЕ
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   // Функція для виходу з аккаунту
   Future<void> _logout(BuildContext context) async {
@@ -138,9 +175,9 @@ class SmartStationPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildSensorData('Температура', '22°C'),
-                        _buildSensorData('Вологість', '45%'),
-                        _buildSensorData('Тиск', '1013 hPa'),
+                        _buildSensorData('Температура', '$temperature°C'),
+                        _buildSensorData('Вологість', '$humidity%'),
+                        _buildSensorData('Тиск', '$pressure hPa'),
                         const SizedBox(height: 16),
                       ],
                     ),
