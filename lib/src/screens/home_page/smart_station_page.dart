@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test1/src/widgets/dialogs/logout_confirmation_dialog.dart';
 import 'package:test1/src/widgets/reusable/reusable_button.dart';
 
 class SmartStationPage extends StatefulWidget {
@@ -35,7 +37,7 @@ class _SmartStationPageState extends State<SmartStationPage> {
       pressure = 961 + _random.nextInt(100);
     });
   }
-// КРИВО НО ОБНОВЛЯЄ, ВКАЗАНО 10 СЕКУНД ОБНОВЛЯЄ ЯКОСЬ ТО ШВИДШЕ ТО ПІЗНІШЕ
+
   @override
   void dispose() {
     _timer.cancel();
@@ -94,10 +96,18 @@ class _SmartStationPageState extends State<SmartStationPage> {
           IconButton(
             color: Colors.grey,
             icon: const Icon(Icons.exit_to_app),
-            onPressed: () => _logout(context),
+            onPressed: () {
+              showDialog<void>(
+                context: context,
+                builder: (context) => LogoutConfirmationDialog(
+                  onConfirm: () => _logout(context),
+                ),
+              );
+            },
           ),
         ],
       ),
+
       backgroundColor: darkBackground,
       body: Stack(
         children: [
