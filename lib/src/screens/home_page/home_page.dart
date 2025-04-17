@@ -12,11 +12,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _isConnected = ChipiDizelConnectorState.connected;
+  bool _isOnline = false;
+  bool _stationConnected = false;
 
-  void _handleConnectionChanged(bool connected) {
+  @override
+  void initState() {
+    super.initState();
+
+    // Відновлюємо стан інету
+    final currentState = context.read<ConnectionBloc>().state;
+    _isOnline = currentState is connection.ConnectionConnected;
+
+    // Відновлюємо стан підключення до станції
+    _stationConnected = ChipiDizelConnectorState.connected;
+  }
+
+  void _handleStationConnectionChanged(bool connected) {
     setState(() {
-      _isConnected = connected;
+      _stationConnected = connected;
     });
   }
 
@@ -29,6 +42,11 @@ class _HomePageState extends State<HomePage> {
     return BlocListener<ConnectionBloc, connection.ConnectionState>(
       listener: (context, state) {
         if (state is connection.ConnectionDisconnected) {
+          setState(() {
+            _isOnline = false;
+            _stationConnected = false; // автоматично відключаємо
+          });
+
           showDialog<void>(
             context: context,
             barrierDismissible: false,
@@ -45,26 +63,25 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           );
+        } else if (state is connection.ConnectionConnected) {
+          setState(() {
+            _isOnline = true;
+          });
         }
       },
       child: Scaffold(
         backgroundColor: darkBackground,
         body: Stack(
           children: [
-            // Градієнтний фон
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    darkBackground,
-                    Color(0xFF25274D),
-                  ],
+                  colors: [darkBackground, Color(0xFF25274D)],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
               ),
             ),
-            // Декоративні кола
             Positioned(
               top: -80,
               left: -50,
@@ -89,7 +106,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            // Основний вміст
             SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -138,7 +154,9 @@ class _HomePageState extends State<HomePage> {
                             ),
                             child: Center(
                               child: ChipiDizelConnector(
-                                onConnectionChanged: _handleConnectionChanged,
+                                isOnline: _isOnline,
+                                onConnectionChanged:
+                                _handleStationConnectionChanged,
                               ),
                             ),
                           ),
@@ -153,14 +171,13 @@ class _HomePageState extends State<HomePage> {
                     ),
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_isConnected) {
-                          Navigator.pushNamed(context, '/station');
-                        }
-                      },
+                      onPressed: (_isOnline && _stationConnected)
+                          ? () => Navigator.pushNamed(context, '/station')
+                          : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                        _isConnected ? accentPurple : Colors.white10,
+                        (_isOnline && _stationConnected) ?
+                        accentPurple : Colors.white10,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

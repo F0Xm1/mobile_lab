@@ -1,8 +1,9 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:test1/src/bloc/connection/connection_bloc.dart';
+import 'package:test1/src/bloc/connection/connection_state.dart' as conn;
+import 'package:test1/src/services/mqtt_service.dart';
 import 'package:test1/src/widgets/dialogs/logout_confirmation_dialog.dart';
 import 'package:test1/src/widgets/reusable/reusable_button.dart';
 
@@ -14,8 +15,7 @@ class SmartStationPage extends StatefulWidget {
 }
 
 class _SmartStationPageState extends State<SmartStationPage> {
-  late Timer _timer;
-  final Random _random = Random();
+  late MQTTClientWrapper _mqttClient;
 
   int temperature = 0;
   int humidity = 0;
@@ -24,34 +24,46 @@ class _SmartStationPageState extends State<SmartStationPage> {
   @override
   void initState() {
     super.initState();
-    _updateSensorData();
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _updateSensorData();
-    });
-  }
 
-  void _updateSensorData() {
-    setState(() {
-      temperature = 15 + _random.nextInt(16);
-      humidity = 40 + _random.nextInt(37);
-      pressure = 961 + _random.nextInt(100);
+    _mqttClient = MQTTClientWrapper(
+      host: 'URL',
+      clientIdentifier: 'flutter_client_${
+          DateTime.now().millisecondsSinceEpoch}',
+      username: 'NAME',
+      password: 'PASS',
+      onData: ({int? temperature, int? humidity, int? pressure}) {
+        setState(() {
+          if (temperature != null) this.temperature = temperature;
+          if (humidity != null) this.humidity = humidity;
+          if (pressure != null) this.pressure = pressure;
+        });
+      },
+    );
+
+    final current = context.read<ConnectionBloc>().state;
+    if (current is conn.ConnectionConnected) {
+      _mqttClient.prepareMqttClient();
+    }
+
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_mqttClient.connectionState != MqttCurrentConnectionState.connected) {
+        _mqttClient.prepareMqttClient();
+      }
     });
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _mqttClient.disconnect();
     super.dispose();
   }
 
-  // Функція для виходу з аккаунту
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('isLoggedIn');
     if (context.mounted) Navigator.pushReplacementNamed(context, '/');
   }
 
-  // Функція для побудови карточки з даними сенсора
   Widget _buildSensorData(String label, String value) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 24),
@@ -63,18 +75,11 @@ class _SmartStationPageState extends State<SmartStationPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 18, color: Colors.white70),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          Text(label, style: const TextStyle(
+              fontSize: 18, color: Colors.white70,),),
+          Text(value, style: const TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white,
+          ),),
         ],
       ),
     );
@@ -82,131 +87,103 @@ class _SmartStationPageState extends State<SmartStationPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Основні кольори для темного дизайну
-    const Color darkBackground = Color(0xFF1A1B2D);
-    const Color accentPurple = Color(0xFF8A2BE2);
-    const Color lightPurple = Color(0xFFB19CD9);
+    const darkBackground = Color(0xFF1A1B2D);
+    const accentPurple = Color(0xFF8A2BE2);
 
-    return Scaffold(
-      // Верхній AppBar із кнопкою виходу
-      appBar: AppBar(
-        backgroundColor: darkBackground,
-        title: const Text('Станція Чіпідізєль'),
-        actions: [
-          IconButton(
-            color: Colors.grey,
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) => LogoutConfirmationDialog(
-                  onConfirm: () => _logout(context),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-
-      backgroundColor: darkBackground,
-      body: Stack(
-        children: [
-          // Градієнтний фон
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  darkBackground,
-                  Color(0xFF25274D),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          // Декоративні елементи
-          Positioned(
-            top: -50,
-            left: -30,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: lightPurple.withOpacity(0.3),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -60,
-            right: -30,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: accentPurple.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          // Основний вміст
-          SafeArea(
-            child: Column(
-              children: [
-                // Верхній блок із назвою та банером
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        accentPurple.withOpacity(0.4),
-                        Colors.transparent,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
+    return BlocListener<ConnectionBloc, conn.ConnectionState>(
+      listener: (context, state) {
+        if (state is conn.ConnectionConnected) {
+          _mqttClient.prepareMqttClient();
+        }
+        if (state is conn.ConnectionDisconnected) {
+          _mqttClient.disconnect();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: darkBackground,
+          title: const Text('Станція Чіпідізєль'),
+          actions: [
+            IconButton(
+              color: Colors.grey,
+              icon: const Icon(Icons.exit_to_app),
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (_) => LogoutConfirmationDialog(
+                    onConfirm: () => _logout(context),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: const Center(
-                    child: Text(
-                      'Чіпідізєль',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                );
+              },
+            ),
+          ],
+        ),
+        backgroundColor: darkBackground,
+        body: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [darkBackground, Color(0xFF25274D)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors:
+                        [accentPurple.withOpacity(0.4), Colors.transparent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: const Center(
+                      child: Text(
+                        'Чіпідізєль',
+                        style: TextStyle(
+                          color:
+                          Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                // Основна зона з даними сенсорів
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildSensorData('Температура', '$temperature°C'),
-                        _buildSensorData('Вологість', '$humidity%'),
-                        _buildSensorData('Тиск', '$pressure hPa'),
-                        const SizedBox(height: 16),
-                      ],
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildSensorData('Температура', '$temperature°C'),
+                          _buildSensorData('Вологість', '$humidity%'),
+                          _buildSensorData('Тиск', '$pressure hPa'),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                // Кнопка "Головна" внизу
-                Container(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Center(
-                    child: ReusableButton(
-                      text: 'Головна',
-                      onPressed: () => Navigator.pushNamed(context, '/home'),
+                  Container(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Center(
+                      child: ReusableButton(
+                        text: 'Головна',
+                        onPressed: () => Navigator.pushNamed(context, '/home'),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
