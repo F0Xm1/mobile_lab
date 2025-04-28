@@ -19,7 +19,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _confirmPasswordController =
   TextEditingController();
 
-  // Повідомлення про помилку
   String? _errorMessage;
 
   Future<void> _onRegister() async {
@@ -65,7 +64,6 @@ class _RegisterPageState extends State<RegisterPage> {
       backgroundColor: darkBackground,
       body: Stack(
         children: [
-          // Градієнтний фон
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -78,7 +76,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-          // Декоративні напівпрозорі кола
           Positioned(
             top: -100,
             left: -50,
@@ -103,7 +100,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-          // Основний вміст
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -113,7 +109,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Заголовок
                     const Text(
                       'Реєстрація',
                       style: TextStyle(
@@ -131,7 +126,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    // Блок з полями вводу
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
