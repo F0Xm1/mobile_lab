@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   mqtt_client: ^10.0.0
+  usb_serial: ^0.5.2
+  rxdart: ^0.28.0
+  mobile_scanner: ^6.0.10
   flutter_bloc: ^9.1.0
   bloc: ^9.0.0
   connectivity_plus: ^6.1.3
