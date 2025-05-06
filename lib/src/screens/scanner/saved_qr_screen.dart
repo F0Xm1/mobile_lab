@@ -26,7 +26,7 @@ class _SavedQrScreenState extends State<SavedQrScreen> {
   Future<void> _readMessageFromArduino() async {
     setState(() => savedMessage = 'Зчитування...');
 
-    await usbManager.dispose(); // Закриваємо попередній порт
+    await usbManager.dispose();
     final port = await usbManager.selectDevice();
 
     if (port == null) {
@@ -45,20 +45,30 @@ class _SavedQrScreenState extends State<SavedQrScreen> {
   Future<String> _readFromArduino(UsbPort port) async {
     final completer = Completer<String>();
     String buffer = '';
-    late StreamSubscription<Uint8List> sub;
 
-    sub = port.inputStream!.listen((data) {
-      buffer += String.fromCharCodes(data);
-      if (buffer.contains('\n')) {
-        completer.complete(buffer.trim());
-        sub.cancel();
-      }
-    });
+    StreamSubscription<Uint8List>? sub;
+    sub = port.inputStream?.listen(
+          (data) {
+        buffer += String.fromCharCodes(data);
+        if (buffer.contains('\n')) {
+          sub?.cancel();
+          completer.complete(buffer.trim());
+        }
+      },
+      onError: (Object error) {
+        sub?.cancel();
+        completer.completeError('❌ Помилка читання: $error');
+      },
+      cancelOnError: true,
+    );
 
-    return completer.future.timeout(const Duration(seconds: 3), onTimeout: () {
-      sub.cancel();
-      return '⏱ Немає відповіді від Arduino';
-    },);
+    return completer.future.timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        sub?.cancel();
+        return '⏱ Немає відповіді від Arduino';
+      },
+    );
   }
 
   @override

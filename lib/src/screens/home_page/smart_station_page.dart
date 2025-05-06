@@ -28,11 +28,11 @@ class _SmartStationPageState extends State<SmartStationPage> {
     super.initState();
 
     _mqttClient = MQTTClientWrapper(
-      host: '29ca9aa3e9614580b2b384d9a0290e8c.s1.eu.hivemq.cloud',
+      host: 'URL',
       clientIdentifier: 'flutter_client_${
           DateTime.now().millisecondsSinceEpoch}',
       username: 'dotem',
-      password: 'Qwerty123',
+      password: 'PASS',
       onData: ({int? temperature, int? humidity, int? pressure}) {
         setState(() {
           if (temperature != null) this.temperature = temperature;
@@ -80,8 +80,11 @@ class _SmartStationPageState extends State<SmartStationPage> {
           Text(label, style: const TextStyle(
               fontSize: 18, color: Colors.white70,),),
           Text(value, style: const TextStyle(
-              fontSize: 18, fontWeight: FontWeight.bold,
-            color: Colors.white,),),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          ),
         ],
       ),
     );
@@ -115,7 +118,7 @@ class _SmartStationPageState extends State<SmartStationPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute<void>(
-                    builder: (_) => QRScannerScreen(), // ❗️ без onScanned
+                    builder: (_) => QRScannerScreen(),
                   ),
                 );
               },

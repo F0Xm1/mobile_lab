@@ -28,7 +28,7 @@ class UsbManager {
     }
 
     if (devices.isEmpty) {
-      return null; // 🛡 Без крашів
+      return null;
     }
 
     final port = await service.connectToDevice(
