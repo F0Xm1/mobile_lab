@@ -13,7 +13,6 @@ import 'package:test1/src/screens/home_page/home_page.dart';
 import 'package:test1/src/screens/home_page/smart_station_page.dart';
 
 void main() => runApp(
-  // Спочатку MultiProvider з репозиторіями та use cases
   MultiProvider(
     providers: [
       Provider<IUserRepository>(
@@ -28,7 +27,6 @@ void main() => runApp(
             RegisterUserUseCase(context.read<IUserRepository>()),
       ),
     ],
-    // Далі обгортаємо в MultiBlocProvider
     child: MultiBlocProvider(
       providers: [
         BlocProvider<ConnectionBloc>(
@@ -71,9 +69,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       routes: {
-        '/': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/station': (context) => const SmartStationPage(),
+        '/': (context) => LoginPage(),
+        '/register': (context) => RegisterPage(),
+        '/station': (context) => SmartStationPage(),
         '/home': (context) => const HomePage(),
       },
     );
