@@ -11,8 +11,6 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
     on<ConnectionStarted>(_onConnectionStarted);
     on<ConnectionChanged>(_onConnectionChanged);
 
-    // Оскільки onConnectivityChanged повертає Stream<List<ConnectivityResult>>,
-    // беремо перший елемент списку або none, якщо список порожній.
     _subscription =
         Connectivity().onConnectivityChanged.listen(
                 (List<ConnectivityResult> results) {
@@ -28,7 +26,6 @@ class ConnectionBloc extends Bloc<ConnectionEvent, ConnectionState> {
       ) async {
     final results = await Connectivity().checkConnectivity();
 
-    // Тут results — це List<ConnectivityResult>
     final hasConnection = results.any((r) => r != ConnectivityResult.none);
 
     if (hasConnection) {
