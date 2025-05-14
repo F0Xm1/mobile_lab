@@ -26,7 +26,6 @@ class MQTTClientWrapper {
   final String? username;
   final String? password;
 
-  /// 🔧 onData тепер НЕ required, і nullable
   OnSensorData? onData;
 
   MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.idle;

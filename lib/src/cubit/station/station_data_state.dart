@@ -1,7 +1,7 @@
 part of 'station_data_cubit.dart';
 
 abstract class StationDataState {
-  const StationDataState(); // ✅ Додали const конструктор
+  const StationDataState();
 }
 
 class StationDataUpdated extends StationDataState {
@@ -13,5 +13,5 @@ class StationDataUpdated extends StationDataState {
     required this.temperature,
     required this.humidity,
     required this.pressure,
-  }) : super(); // ✅ Вже не буде помилки
+  }) : super();
 }
