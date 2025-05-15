@@ -22,11 +22,10 @@ class SavedQrScreen extends StatelessWidget {
 
             if (state is SavedQrLoading) {
               text = 'Зчитування...';
-            } else if (state is SavedQrFailure) {
-              text = state.message;
-            } else if (state is SavedQrSuccess) {
+            } else if (state is SavedQrWithMessage) {
               text = state.message;
             }
+
 
             return Center(
               child: Padding(

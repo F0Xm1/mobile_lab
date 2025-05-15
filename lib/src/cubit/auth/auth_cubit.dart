@@ -27,6 +27,8 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> checkAutoLogin(BuildContext context) async {
+    if (!context.mounted) return;
+
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 

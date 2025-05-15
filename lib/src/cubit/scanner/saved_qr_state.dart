@@ -6,12 +6,18 @@ class SavedQrInitial extends SavedQrState {}
 
 class SavedQrLoading extends SavedQrState {}
 
-class SavedQrSuccess extends SavedQrState {
+abstract class SavedQrWithMessage extends SavedQrState {
+  String get message;
+}
+
+class SavedQrSuccess extends SavedQrWithMessage {
+  @override
   final String message;
   SavedQrSuccess(this.message);
 }
 
-class SavedQrFailure extends SavedQrState {
+class SavedQrFailure extends SavedQrWithMessage {
+  @override
   final String message;
   SavedQrFailure(this.message);
 }
